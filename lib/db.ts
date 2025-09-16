@@ -1,12 +1,4 @@
-
-
 import mongoose from "mongoose";
-
-const MONGODB_URI = process.env.MONGODB_URI!;
-
-if (!MONGODB_URI) {
-  throw new Error("Please define mongo_uri in env variables");
-}
 
 let cached = global.mongoose;
 
@@ -25,7 +17,14 @@ export async function ConnectDB() {
       maxPoolSize: 10,
     };
 
-    mongoose.connect(MONGODB_URI, opts).then(() => mongoose.connection);
+    const MONGODB_URI = process.env.MONGODB_URI;
+
+    if (!MONGODB_URI) {
+      throw new Error("Please define MONGODB_URI in env variables");
+    }
+
+    // Assign the promise properly!
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => mongoose.connection);
   }
 
   try {

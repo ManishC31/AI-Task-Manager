@@ -57,7 +57,6 @@ const ticketSchema: Schema<ITicket> = new Schema(
 );
 
 // Create the model with proper typing
-const Ticket: Model<ITicket> =
-  mongoose.models.Ticket || mongoose.model<ITicket>("Ticket", ticketSchema);
+const Ticket: Model<ITicket> = mongoose.models?.Ticket || mongoose.model<ITicket>("Ticket", ticketSchema);
 
 export default Ticket;

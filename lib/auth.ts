@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { ConnectDB } from "./db";
 import User, { IUser } from "@/models/user.model";
@@ -9,15 +9,18 @@ export interface ICredential {
   password: string;
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     Credentials({
       name: "Credentials",
+      id: "credentials",
       credentials: {
         email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
+        password: { label: "Password", type: "text" },
       },
       async authorize(credentials) {
+        console.log("credentials:", credentials);
+
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Missing email or password");
         }
@@ -48,7 +51,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-   callbacks: {
+  callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
@@ -71,4 +74,4 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     maxAge: 30 * 24 * 60 * 60,
   },
   secret: process.env.NEXTAUTH_SECRET,
-});
+};
