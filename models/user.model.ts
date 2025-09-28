@@ -1,27 +1,26 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
+import mongoose from "mongoose";
 
-// Interface for skills (optional if only string[])
-export interface ISkills {
-  types: string[]; // optional wrapper if needed
-}
-
-// User interface extending mongoose.Document
-export interface IUser extends Document {
+export interface IUser {
   _id: mongoose.Types.ObjectId;
-  name: string;
+  firstname: string;
+  lastname?: string;
   email: string;
   password: string;
-  role: "admin" | "moderator" | "developer";
-  skills: string[]; // Keeping it simple as per schema
+  role: ["ADMIN", "MODERATOR", "MANAGER", "DEVELOPER"];
+  is_mail_verified: boolean;
+  organization: mongoose.Types.ObjectId;
+  created_at: Date;
+  updated_at: Date;
 }
 
-// Mongoose Schema
-const userSchema: Schema<IUser> = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
-    name: {
+    firstname: {
       type: String,
       required: true,
-      unique: true,
+    },
+    lastname: {
+      type: String,
     },
     email: {
       type: String,
@@ -34,12 +33,16 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: "developer",
-      enum: ["admin", "moderator", "developer"],
+      enum: ["ADMIN", "MODERATOR", "MANAGER", "DEVELOPER"],
     },
-    skills: {
-      type: [String],
-      default: [], // optional default value
+    is_mail_verified: {
+      type: Boolean,
+      default: false,
+    },
+    organization: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Organization",
+      required: true,
     },
   },
   {
@@ -47,7 +50,6 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
   }
 );
 
-// Define model
-const User: Model<IUser> = mongoose.models?.User || mongoose.model<IUser>("User", userSchema);
+const User = mongoose.models?.User || mongoose.model("User", userSchema);
 
 export default User;

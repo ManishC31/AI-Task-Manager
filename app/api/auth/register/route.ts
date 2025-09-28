@@ -1,40 +1,54 @@
-import { NextRequest } from "next/server";
-import { SendResponse } from "@/utils/response";
+import Organization from "@/models/organization.model";
 import User from "@/models/user.model";
+import { StandardSentence } from "@/utils/helpers";
+import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { StandardSentence } from "@/utils/functions";
 import { ConnectDB } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
-  const { name, email, password } = await req.json();
-
-  // Validate required fields
-  if (!name || typeof name !== "string" || name.trim().length === 0) {
-    return SendResponse(400, "Name is required", null);
-  }
-  if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return SendResponse(400, "A valid email is required", null);
-  }
-  if (!password || typeof password !== "string" || password.length < 8) {
-    return SendResponse(400, "Password should be at least 8 characters", null);
-  }
-
+  const { firstname, lastname, orgname, email, password } = await req.json();
+  console.log("data:", firstname, lastname, orgname, email, password);
+  // TODO: validate body data
   try {
     await ConnectDB();
 
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const extension = email.toLowerCase().split("@")[1];
+    const existingOrganization = await Organization.findOne({ extension: extension });
 
-    if (existingUser) {
-      return SendResponse(400, "User already present with email");
+    if (extension !== "gmail.com" && existingOrganization) {
+      return NextResponse.json({
+        success: false,
+        message: "Organization is already present",
+      });
     }
+
+    const organization = await Organization.create({
+      name: orgname,
+      extension: extension,
+    });
 
     const encPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({ name: StandardSentence(name), email: email.toLowerCase(), password: encPassword });
+    const adminUser = await User.create({
+      firstname: StandardSentence(firstname),
+      lastname: lastname ? StandardSentence(lastname) : null,
+      email: email.toLowerCase(),
+      password: encPassword,
+      role: "ADMIN",
+      organization: organization._id,
+    });
 
-    return SendResponse(201, "User registered successfully");
+    adminUser.password = undefined;
+
+    return NextResponse.json({
+      success: true,
+      user: adminUser,
+    });
   } catch (error) {
     console.log("Err in register user:", error);
-    return SendResponse(500, "Failed to register user");
+    return NextResponse.json({
+      success: false,
+      message: "Failed to register user",
+    });
   }
 }
