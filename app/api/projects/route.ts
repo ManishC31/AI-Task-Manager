@@ -1,33 +1,34 @@
 import Project from "@/models/project.model";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
-import mongoose from "mongoose";
 
-/**
- * Get the list of all projects of an organization
- */
 export async function GET(req: NextRequest) {
-  const searchParams = req.nextUrl.searchParams;
-
   const token = await getToken({ req });
   console.log("token:", token);
 
-  if (!token) {
+  const organizationId = token?.organizationId;
+  try {
+    // get the data via the role
+
+    let projects = [];
+    if (token?.role === "ADMIN") {
+      projects = await Project.find({ organization: organizationId });
+    } else if (token?.role === "DEVELOPER") {
+      projects = await Project.find({ contributors: { $in: [token?.id] } });
+    } else if (token?.role === "MANAGER") {
+      projects = await Project.find({ manager: token?.id });
+    } else if (token?.role === "MODERATORS") {
+      projects = await Project.find({ moderators: { $in: [token?.id] } });
+    }
+
+    return NextResponse.json({ success: true, projects: projects });
+  } catch (error: any) {
     return NextResponse.json(
       {
         success: false,
-        message: "Unauthorized user",
+        error: error.message || "Failed to create project",
       },
-      { status: 401 }
+      { status: 500 }
     );
   }
-  try {
-    const organizationId = token.organizationId;
-    const projects = await Project.find({ organization: new mongoose.Types.ObjectId(organizationId) });
-
-    return NextResponse.json({
-      success: true,
-      projets: projects,
-    });
-  } catch (error) {}
 }

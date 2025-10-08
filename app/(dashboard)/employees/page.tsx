@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -8,10 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Mail, Phone, Calendar, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import { toast } from "sonner";
 
 interface Employee {
   id: string;
-  name: string;
+  firstname: string;
+  lastname: string;
   email: string;
   avatar: string;
   role: string;
@@ -20,9 +23,10 @@ interface Employee {
   hireDate: string;
   phone: string;
   assignedProjects: string[];
+  createdAt: Date;
 }
 
-export default function EmployeesList() {
+export default function EmployeesPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("all");
@@ -32,71 +36,34 @@ export default function EmployeesList() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Mock employee data
-  const [employees] = useState<Employee[]>([
-    {
-      id: "1",
-      name: "Alice Johnson",
-      email: "alice.johnson@company.com",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b002?w=150",
-      role: "Frontend Developer",
-      department: "Engineering",
-      status: "active",
-      hireDate: "2023-01-15",
-      phone: "+1 (555) 123-4567",
-      assignedProjects: ["E-commerce Platform", "Mobile App Redesign"],
-    },
-    {
-      id: "2",
-      name: "Bob Smith",
-      email: "bob.smith@company.com",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
-      role: "Backend Developer",
-      department: "Engineering",
-      status: "active",
-      hireDate: "2022-08-22",
-      phone: "+1 (555) 234-5678",
-      assignedProjects: ["API Gateway", "Database Migration", "Authentication Service"],
-    },
-    {
-      id: "3",
-      name: "Carol Davis",
-      email: "carol.davis@company.com",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
-      role: "Product Manager",
-      department: "Product",
-      status: "active",
-      hireDate: "2022-03-10",
-      phone: "+1 (555) 345-6789",
-      assignedProjects: ["Product Roadmap", "User Research"],
-    },
-    {
-      id: "4",
-      name: "David Wilson",
-      email: "david.wilson@company.com",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
-      role: "UI/UX Designer",
-      department: "Design",
-      status: "on-leave",
-      hireDate: "2023-06-01",
-      phone: "+1 (555) 456-7890",
-      assignedProjects: ["Design System", "Mobile App Redesign"],
-    },
-    {
-      id: "5",
-      name: "Eva Martinez",
-      email: "eva.martinez@company.com",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-      role: "DevOps Engineer",
-      department: "Engineering",
-      status: "active",
-      hireDate: "2021-11-12",
-      phone: "+1 (555) 567-8901",
-      assignedProjects: ["CI/CD Pipeline", "Cloud Infrastructure"],
-    },
-  ]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+
+  // {
+  //   id: "5",
+  //   name: "Eva Martinez",
+  //   email: "eva.martinez@company.com",
+  //   avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+  //   role: "DevOps Engineer",
+  //   department: "Engineering",
+  //   status: "active",
+  //   hireDate: "2021-11-12",
+  //   phone: "+1 (555) 567-8901",
+  //   assignedProjects: ["CI/CD Pipeline", "Cloud Infrastructure"],
+  // }
+
+  useEffect(() => {
+    loadEmployeeData();
+  }, []);
 
   const loadEmployeeData = async () => {
-    // Future implementation for loading data from API
+    const response = await axios.get("/api/employees");
+
+    console.log("response:", response.data.employees[0]);
+    if (response.data.success) {
+      setEmployees(response.data.employees);
+    } else {
+      toast.error(response.data.error);
+    }
   };
 
   // Get unique values for filter options
@@ -106,7 +73,8 @@ export default function EmployeesList() {
 
   const filteredEmployees = employees.filter((employee) => {
     const matchesSearch =
-      employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.department.toLowerCase().includes(searchTerm.toLowerCase());
@@ -123,19 +91,6 @@ export default function EmployeesList() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
-
-  const getStatusBadgeVariant = (status: Employee["status"]) => {
-    switch (status) {
-      case "active":
-        return "default";
-      case "inactive":
-        return "secondary";
-      case "on-leave":
-        return "outline";
-      default:
-        return "secondary";
-    }
-  };
 
   const getInitials = (name: string) => {
     return name
@@ -178,7 +133,7 @@ export default function EmployeesList() {
           <h1 className="text-3xl font-bold tracking-tight">Employees</h1>
           <p className="text-muted-foreground">Manage and view all company employees</p>
         </div>
-        <Button onClick={() => router.push("/admin/employees/create")}>Add Employee</Button>
+        <Button onClick={() => router.push("/employees/create")}>Add Employee</Button>
       </div>
 
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-4">
@@ -278,8 +233,7 @@ export default function EmployeesList() {
             <TableRow>
               <TableHead>Employee</TableHead>
               <TableHead>Role & Department</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Status</TableHead>
+              {/* <TableHead>Status</TableHead> */}
               <TableHead>Hire Date</TableHead>
               <TableHead>Assigned Projects</TableHead>
             </TableRow>
@@ -290,11 +244,13 @@ export default function EmployeesList() {
                 <TableCell className="font-medium">
                   <div className="flex items-center space-x-3 py-2">
                     <Avatar>
-                      <AvatarImage src={employee.avatar} alt={employee.name} />
-                      <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
+                      <AvatarImage src={employee.avatar} alt={employee.firstname} />
+                      <AvatarFallback>{getInitials(employee.firstname)}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="font-medium">{employee.name}</div>
+                      <div className="font-medium">
+                        {employee.firstname} {employee.lastname}
+                      </div>
                       <div className="text-sm text-muted-foreground flex items-center">
                         <Mail className="h-3 w-3 mr-1" />
                         {employee.email}
@@ -308,24 +264,18 @@ export default function EmployeesList() {
                     <div className="text-sm text-muted-foreground">{employee.department}</div>
                   </div>
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Phone className="h-3 w-3 mr-1" />
-                    {employee.phone}
-                  </div>
-                </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   <Badge variant={getStatusBadgeVariant(employee.status)}>{employee.status.replace("-", " ")}</Badge>
-                </TableCell>
+                </TableCell> */}
                 <TableCell>
                   <div className="flex items-center text-sm">
                     <Calendar className="h-3 w-3 mr-1" />
-                    {new Date(employee.hireDate).toLocaleDateString()}
+                    {new Date(employee?.createdAt).toLocaleDateString()}
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {employee.assignedProjects.map((project, index) => (
+                    {employee?.assignedProjects?.map((project, index) => (
                       <Badge key={index} variant="outline" className="text-xs">
                         {project}
                       </Badge>

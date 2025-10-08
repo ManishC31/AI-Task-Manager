@@ -81,39 +81,7 @@ function LoginPage() {
 
         setErrors((prev) => ({ ...prev, login: errorMessage }));
       } else {
-        // Fetch session to check role
-        try {
-          const res = await fetch("/api/auth/session");
-
-          if (!res.ok) {
-            throw new Error("Failed to fetch session");
-          }
-
-          const session = await res.json();
-          console.log("session:", session);
-
-          const role = session?.user?.role;
-          console.log("role:", role);
-
-          // Redirect based on role
-          if (role === "ADMIN") {
-            router.push("/admin");
-          } else if (role === "DEVELOPER") {
-            router.push("/developer");
-          } else if (role === "MODERATOR") {
-            router.push("/moderator");
-          } else if (role === "MANAGER") {
-            router.push("/manager");
-          } else {
-            router.push("/");
-          }
-        } catch (sessionError) {
-          console.error("Session fetch error:", sessionError);
-          setErrors((prev) => ({
-            ...prev,
-            login: "Login successful but failed to load user data. Please refresh the page.",
-          }));
-        }
+        router.replace("/projects");
       }
     } catch (error) {
       console.error("Unexpected login error:", error);

@@ -119,6 +119,7 @@ function RegisterPage() {
           lastname: lastName.trim(),
           email: email.trim(),
           password: password.trim(),
+          role: "MANAGER",
         }),
       });
 
@@ -313,10 +314,7 @@ function RegisterPage() {
           </CardContent>
         </Card>
         <div className="mt-4 text-center">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1 text-sm text-primary hover:underline underline-offset-4"
-          >
+          <Link href="/" className="inline-flex items-center gap-1 text-sm text-primary hover:underline underline-offset-4">
             <span>←</span> Go back to Homepage
           </Link>
         </div>

@@ -1,28 +1,16 @@
-/**
- * Get employees by organization
- */
-
+import User from "@/models/user.model";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
-import mongoose from "mongoose";
-import User from "@/models/user.model";
 
 export async function GET(req: NextRequest) {
   const token = await getToken({ req });
-
-  if (!token) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Unauthorized user",
-      },
-      { status: 400 }
-    );
-  }
-
-  const organizationId = new mongoose.Types.ObjectId(token.organizationId);
   try {
-    const employees = await User.find({ organization: organizationId });
+    let employees = [];
+    if (token?.role === "ADMIN" || token?.role === "MANAGER") {
+      employees = await User.find({ organization: token?.organizationId });
+    } else {
+      employees = await User.find({ organization: token?.organizationId, role: ["MODERATOR", "DEVELOPER"] });
+    }
 
     return NextResponse.json(
       {
@@ -33,12 +21,9 @@ export async function GET(req: NextRequest) {
     );
   } catch (error) {
     console.log("Err in fetching employees", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Failed to fetch employees",
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: false,
+      error: "Failed to fetch employees",
+    });
   }
 }

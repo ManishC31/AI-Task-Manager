@@ -1,6 +1,32 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-const ticketSchema = new mongoose.Schema(
+// Define the conversation message interface
+interface IConversationMessage {
+  author: mongoose.Types.ObjectId;
+  message: string;
+  created_date: Date;
+}
+
+// Define the main ticket interface
+export interface ITicket extends Document {
+  _id: mongoose.Types.ObjectId;
+  title: string;
+  description?: string;
+  project?: mongoose.Types.ObjectId;
+  status: "INPROGRESS" | "INTESTING" | "COMPLETED";
+  start_date: Date;
+  finish_date?: Date;
+  creator?: mongoose.Types.ObjectId;
+  developer?: mongoose.Types.ObjectId;
+  priority?: "LOW" | "MEDIUM" | "HIGH";
+  images: string[];
+  tags: string[];
+  conversation: IConversationMessage[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const ticketSchema = new Schema<ITicket>(
   {
     title: {
       type: String,
@@ -10,7 +36,7 @@ const ticketSchema = new mongoose.Schema(
       type: String,
     },
     project: {
-      type: mongoose.Schema.ObjectId,
+      type: Schema.ObjectId,
       ref: "Project",
     },
     status: {
@@ -26,11 +52,11 @@ const ticketSchema = new mongoose.Schema(
       type: Date,
     },
     creator: {
-      type: mongoose.Schema.ObjectId,
+      type: Schema.ObjectId,
       ref: "User",
     },
     developer: {
-      type: mongoose.Schema.ObjectId,
+      type: Schema.ObjectId,
       ref: "User",
     },
     priority: {
@@ -38,13 +64,17 @@ const ticketSchema = new mongoose.Schema(
       enum: ["LOW", "MEDIUM", "HIGH"],
     },
     images: {
-      type: Array,
+      type: [String],
+      default: [],
+    },
+    tags: {
+      type: [String],
       default: [],
     },
     conversation: [
       {
         author: {
-          type: mongoose.Schema.ObjectId,
+          type: Schema.ObjectId,
           ref: "User",
         },
         message: {
@@ -61,6 +91,6 @@ const ticketSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Ticket = mongoose.models?.Ticket || mongoose.model("Ticket", ticketSchema);
+const Ticket = mongoose.models?.Ticket || mongoose.model<ITicket>("Ticket", ticketSchema);
 
 export default Ticket;

@@ -5,15 +5,25 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, CheckCircle, BarChart3 } from "lucide-react";
+import { useTheme } from "next-themes";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Moon, Sun } from "lucide-react";
 
 export default function Home() {
+  const { setTheme } = useTheme();
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       {/* Navbar */}
       <header className="w-full border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
           <Link href="/" className="text-xl font-bold tracking-tight">
-            MindVista
+            TaskMind AI
           </Link>
           <div className="flex items-center gap-4">
             <Button asChild variant="ghost">
@@ -22,6 +32,20 @@ export default function Home() {
             <Button asChild variant="secondary">
               <Link href="/register">Sign Up</Link>
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+                  <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+                  <span className="sr-only">Toggle theme</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
@@ -47,7 +71,12 @@ export default function Home() {
         >
           Streamline projects, boost productivity, and let AI handle the heavy lifting for your organization’s workflow.
         </motion.p>
-        <motion.div className="mt-6 flex gap-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.6 }}>
+        <motion.div
+          className="mt-6 flex gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+        >
           <Button asChild size="lg" variant="default">
             <Link href="/login">Get Started</Link>
           </Button>
@@ -106,7 +135,9 @@ export default function Home() {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl md:text-4xl font-bold">Transform How Your Team Works</h2>
-          <p className="text-muted-foreground">Get started today and see how AI can redefine task management for your organization.</p>
+          <p className="text-muted-foreground">
+            Get started today and see how AI can redefine task management for your organization.
+          </p>
           <Button asChild size="lg">
             <Link href="/register">Start Free Trial</Link>
           </Button>

@@ -17,12 +17,18 @@ const createProjectSchema = z.object({
     .min(10, "Description must be at least 10 characters")
     .max(1000, "Description must not exceed 1000 characters")
     .trim(),
-  manager: z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
-    message: "Invalid manager ID",
-  }),
-  techlead: z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
-    message: "Invalid techlead ID",
-  }),
+  manager: z
+    .string()
+    .refine((val) => mongoose.Types.ObjectId.isValid(val), {
+      message: "Invalid manager ID",
+    })
+    .optional(),
+  techlead: z
+    .string()
+    .refine((val) => mongoose.Types.ObjectId.isValid(val), {
+      message: "Invalid techlead ID",
+    })
+    .optional(),
   developers: z
     .array(
       z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
@@ -68,7 +74,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Unauthorized user",
+          error: "Unauthorized user",
         },
         { status: 401 }
       );
@@ -79,7 +85,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid organization ID",
+          error: "Invalid organization ID",
         },
         { status: 400 }
       );
@@ -98,7 +104,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Project with same title already exists in this organization",
+          error: "Project with same title already exists in this organization",
         },
         { status: 400 }
       );
@@ -110,8 +116,8 @@ export async function POST(req: NextRequest) {
     const newProject = await Project.create({
       title: StandardSentence(title),
       description: description,
-      manager: new mongoose.Types.ObjectId(manager),
-      techlead: new mongoose.Types.ObjectId(techlead),
+      manager: manager ? new mongoose.Types.ObjectId(manager) : null,
+      techlead: techlead ? new mongoose.Types.ObjectId(techlead) : null,
       contributors: contributorIds,
       techstack: tags,
       organization: new mongoose.Types.ObjectId(token.organizationId),
@@ -133,7 +139,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message: "Failed to create project",
+        error: "Failed to create project",
       },
       { status: 500 }
     );

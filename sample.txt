@@ -1,0 +1,42 @@
+fix thw working of ui. add the loader. Use shadcnui only. The project object is like below. Use for reference
+
+{
+    "_id": "68e3cbef6d01d98f443418ee",
+    "title": "Project 1",
+    "description": "description of project 1",
+    "organization": "68e2451f044c6c95f1c1a596",
+    "manager": "68e28cce044c6c95f1c1a5bc",
+    "techlead": "68e28c0c044c6c95f1c1a5b1",
+    "is_active": true,
+    "techstack": [
+        "Python",
+        "Java"
+    ],
+    "contributors": [
+        "68e28c1c044c6c95f1c1a5b6"
+    ],
+    "moderators": [],
+    "start_date": "2025-10-06T14:02:23.028Z",
+    "createdAt": "2025-10-06T14:02:23.029Z",
+    "updatedAt": "2025-10-06T14:02:23.029Z",
+    "__v": 0
+}
+
+
+const projectData = {
+  id: "1",
+  title: "E-commerce Platform Redesign",
+  description:
+    "Complete redesign of the customer-facing e-commerce platform with modern UI/UX, improved performance, and mobile-first approach.",
+  manager: {
+    name: "Sarah Johnson",
+    avatar: "/avatars/sarah.jpg",
+  },
+  techLead: {
+    name: "Alex Chen",
+    avatar: "/avatars/alex.jpg",
+  },
+  status: "In Progress",
+  startDate: "2024-01-15",
+  endDate: "2024-06-30",
+};

@@ -11,6 +11,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { ArrowLeftCircle } from "lucide-react";
+import axios from "axios";
+import { StandardSentence } from "@/utils/helpers";
 
 const formSchema = z.object({
   firstName: z.string().min(2, {
@@ -25,34 +29,17 @@ const formSchema = z.object({
   role: z.string().min(1, {
     message: "Please select a role.",
   }),
-  project: z.string().min(1, {
-    message: "Please select a project.",
-  }),
 });
 
 const roles = [
-  { value: "developer", label: "Developer" },
-  { value: "designer", label: "Designer" },
+  { value: "admin", label: "Administrator" },
   { value: "manager", label: "Manager" },
-  { value: "analyst", label: "Analyst" },
-  { value: "qa", label: "QA Engineer" },
-  { value: "devops", label: "DevOps Engineer" },
-  { value: "marketing", label: "Marketing Specialist" },
-  { value: "sales", label: "Sales Representative" },
-];
-
-const projects = [
-  { value: "project-alpha", label: "Project Alpha" },
-  { value: "project-beta", label: "Project Beta" },
-  { value: "project-gamma", label: "Project Gamma" },
-  { value: "mobile-app", label: "Mobile App Development" },
-  { value: "web-platform", label: "Web Platform" },
-  { value: "data-analytics", label: "Data Analytics" },
-  { value: "ai-research", label: "AI Research" },
-  { value: "infrastructure", label: "Infrastructure" },
+  { value: "moderator", label: "Moderator" },
+  { value: "developer", label: "Developer" },
 ];
 
 export default function CreateEmployee() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -62,7 +49,6 @@ export default function CreateEmployee() {
       lastName: "",
       email: "",
       role: "",
-      project: "",
     },
   });
 
@@ -70,20 +56,28 @@ export default function CreateEmployee() {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const { firstName, lastName, email, role } = values;
 
-      console.log("Employee data:", values);
-
-      toast.success("Employee created successfully!", {
-        description: `${values.firstName} ${values.lastName} has been added to ${values.project}.`,
+      const response = await axios.post("/api/employees/create", {
+        firstName: StandardSentence(firstName.trim()),
+        lastName: StandardSentence(lastName.trim()),
+        email: email.toLowerCase().trim(),
+        role: role.toUpperCase().trim(),
       });
 
-      // Reset form after successful submission
-      form.reset();
-    } catch (error) {
+      // Optionally check backend success flag
+      if (response.data.success) {
+        toast.success("Employee created successfully!", {
+          description: `${values.firstName} ${values.lastName} has been added.`,
+        });
+
+        // Navigate immediately or after a short delay
+        router.push("/employees");
+      }
+    } catch (error: any) {
+      console.error(error);
       toast.error("Error", {
-        description: "Something went wrong. Please try again.",
+        description: error?.response?.data?.message || "Something went wrong. Please try again.",
       });
     } finally {
       setIsLoading(false);
@@ -94,7 +88,10 @@ export default function CreateEmployee() {
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Create New Employee</h1>
+          <h1 className="text-3xl font-bold tracking-tight flex gap-2">
+            <ArrowLeftCircle className="cursor-pointer h-10 w-10" onClick={() => router.back()} />
+            Create New Employee
+          </h1>
           <p className="text-muted-foreground mt-2">
             Add a new employee to your organization and assign them to a project.
           </p>
@@ -172,32 +169,6 @@ export default function CreateEmployee() {
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="project"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Project Assignment</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select a project" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {projects.map((project) => (
-                            <SelectItem key={project.value} value={project.value}>
-                              {project.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>Choose the initial project for this employee.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

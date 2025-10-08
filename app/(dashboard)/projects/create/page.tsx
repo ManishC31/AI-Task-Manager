@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,23 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, User, Code, Users } from "lucide-react";
+import { X, Plus, User, Code, Users, ArrowLeftCircle } from "lucide-react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-
-// Mock data - replace with actual API calls
-const managers = [
-  { id: "1", name: "John Smith", email: "john.smith@company.com" },
-  { id: "2", name: "Sarah Johnson", email: "sarah.johnson@company.com" },
-  { id: "3", name: "Mike Davis", email: "mike.davis@company.com" },
-];
-
-const techLeads = [
-  { id: "1", name: "Alice Brown", email: "alice.brown@company.com" },
-  { id: "2", name: "Bob Wilson", email: "bob.wilson@company.com" },
-  { id: "3", name: "Carol Martinez", email: "carol.martinez@company.com" },
-];
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import { IUser } from "@/models/user.model";
 
 const availableSkills = [
   "React",
@@ -47,19 +38,15 @@ const availableSkills = [
   "CI/CD",
 ];
 
-const developers = [
-  { id: "1", name: "David Lee", email: "david.lee@company.com", skills: ["React", "TypeScript", "Node.js"] },
-  {
-    id: "2",
-    name: "Emma Taylor",
-    email: "emma.taylor@company.com",
-    skills: ["Python", "Machine Learning", "PostgreSQL"],
-  },
-  { id: "3", name: "James Rodriguez", email: "james.rodriguez@company.com", skills: ["Java", "Docker", "AWS"] },
-  { id: "4", name: "Lisa Chen", email: "lisa.chen@company.com", skills: ["Go", "Kubernetes", "DevOps"] },
-];
-
 export default function CreateProject() {
+  const router = useRouter();
+
+  // states to store initial data
+  const [managers, setManagers] = useState<IUser[]>([]);
+  const [techLeads, setTechLeads] = useState<IUser[]>([]);
+  const [developers, setDevelopers] = useState<IUser[]>([]);
+  const [globalDevelopers, setGlobalDevelopers] = useState<IUser[]>([]);
+
   const [projectName, setProjectName] = useState("");
   const [description, setDescription] = useState("");
   const [selectedManager, setSelectedManager] = useState("");
@@ -68,6 +55,7 @@ export default function CreateProject() {
   const [selectedDevelopers, setSelectedDevelopers] = useState<string[]>([]);
   const [skillsOpen, setSkillsOpen] = useState(false);
   const [developersOpen, setDevelopersOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSkillToggle = (skill: string) => {
     setSelectedSkills((prev) => (prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]));
@@ -79,23 +67,76 @@ export default function CreateProject() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    setIsLoading(true);
     // Handle form submission
-    console.log({
-      projectName,
-      description,
-      selectedManager,
-      selectedTechLead,
-      selectedSkills,
-      selectedDevelopers,
-    });
+
+    try {
+      const response = await axios.post("/api/projects/create", {
+        title: projectName,
+        description,
+        manager: selectedManager,
+        techlead: selectedTechLead,
+        tags: selectedSkills,
+        developers: selectedDevelopers,
+      });
+
+      if (response.data.success) {
+        toast.success("Employee created successfully!", {
+          description: `${projectName} has been created.`,
+        });
+
+        // Wait for 3 seconds before redirecting
+        setTimeout(() => {
+          router.push("/projects");
+        }, 3000);
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Error", {
+        description: error?.response?.data?.message || "Something went wrong. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const loadMangerDetails = async () => {
+    const response = await axios.get("/api/employees/manager");
+
+    if (response.data.success) {
+      setManagers(response.data.data);
+    } else {
+      toast.error("Failed to retrieve manager details");
+    }
+  };
+
+  const loadDeveloperDetails = async () => {
+    const response = await axios.get("/api/employees/developer");
+
+    if (response.data.success) {
+      setDevelopers(response.data.data);
+      setTechLeads(response.data.data);
+      setGlobalDevelopers(response.data.data);
+    } else {
+      toast.error("Failed to retrieve developer details");
+    }
+  };
+
+  useEffect(() => {
+    loadMangerDetails();
+    loadDeveloperDetails();
+  }, []);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Create New Project</h1>
+        <h1 className="text-3xl font-bold tracking-tight flex gap-4">
+          <ArrowLeftCircle className="cursor-pointer h-10 w-10" onClick={() => router.back()} />
+          Create New Project
+        </h1>
         <p className="text-muted-foreground mt-2">Set up a new project with team members and required skills</p>
       </div>
 
@@ -152,7 +193,7 @@ export default function CreateProject() {
                   <SelectValue placeholder="Select a manager" />
                 </SelectTrigger>
                 <SelectContent>
-                  {managers.map((manager) => (
+                  {managers.map((manager: any) => (
                     <SelectItem key={manager.id} value={manager.id}>
                       <div className="flex flex-col">
                         <span>{manager.name}</span>
@@ -166,12 +207,26 @@ export default function CreateProject() {
 
             <div className="space-y-2">
               <Label>Technical Lead *</Label>
-              <Select value={selectedTechLead} onValueChange={setSelectedTechLead} required>
+              <Select
+                value={selectedTechLead}
+                onValueChange={(val) => {
+                  if (selectedDevelopers) {
+                    setSelectedDevelopers([]);
+                    setDevelopers(developers.filter((developer: any) => developer.id !== val));
+                    setSelectedTechLead(val);
+                  } else {
+                    // remove the object from developer listing
+                    setDevelopers(developers.filter((developer: any) => developer.id !== val));
+                    setSelectedTechLead(val);
+                  }
+                }}
+                required
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a tech lead" />
                 </SelectTrigger>
                 <SelectContent>
-                  {techLeads.map((techLead) => (
+                  {techLeads.map((techLead: any) => (
                     <SelectItem key={techLead.id} value={techLead.id}>
                       <div className="flex flex-col">
                         <span>{techLead.name}</span>
@@ -250,27 +305,28 @@ export default function CreateProject() {
                   <CommandInput placeholder="Search developers..." />
                   <CommandEmpty>No developers found.</CommandEmpty>
                   <CommandGroup className="max-h-64 overflow-auto">
-                    {developers.map((developer) => (
-                      <CommandItem key={developer.id} onSelect={() => handleDeveloperToggle(developer.id)}>
-                        <Checkbox checked={selectedDevelopers.includes(developer.id)} className="mr-3" />
-                        <div className="flex-1">
-                          <div className="font-medium">{developer.name}</div>
-                          <div className="text-sm text-muted-foreground">{developer.email}</div>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {developer.skills.slice(0, 3).map((skill) => (
-                              <Badge key={skill} variant="outline" className="text-xs">
-                                {skill}
-                              </Badge>
-                            ))}
-                            {developer.skills.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{developer.skills.length - 3}
-                              </Badge>
-                            )}
+                    {developers &&
+                      developers.map((developer: any) => (
+                        <CommandItem key={developer.id} onSelect={() => handleDeveloperToggle(developer.id)}>
+                          <Checkbox checked={selectedDevelopers.includes(developer.id)} className="mr-3" />
+                          <div className="flex-1">
+                            <div className="font-medium">{developer.name}</div>
+                            <div className="text-sm text-muted-foreground">{developer.email}</div>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {developer?.skills?.slice(0, 3).map((skill: any) => (
+                                <Badge key={skill} variant="outline" className="text-xs">
+                                  {skill}
+                                </Badge>
+                              ))}
+                              {developer?.skills?.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{developer.skills.length - 3}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </CommandItem>
-                    ))}
+                        </CommandItem>
+                      ))}
                   </CommandGroup>
                 </Command>
               </PopoverContent>
@@ -281,16 +337,18 @@ export default function CreateProject() {
                 <Label>Selected Developers ({selectedDevelopers.length})</Label>
                 <div className="space-y-2">
                   {selectedDevelopers.map((developerId) => {
-                    const developer = developers.find((d) => d.id === developerId);
+                    const developer = developers.find((d: any) => d.id === developerId);
                     if (!developer) return null;
 
                     return (
                       <div key={developerId} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex-1">
-                          <div className="font-medium">{developer.name}</div>
+                          <div className="font-medium">
+                            {developer.firstname} {developer.lastname}
+                          </div>
                           <div className="text-sm text-muted-foreground">{developer.email}</div>
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {developer.skills.map((skill) => (
+                            {developer?.skills?.map((skill: any) => (
                               <Badge key={skill} variant="outline" className="text-xs">
                                 {skill}
                               </Badge>
@@ -311,10 +369,24 @@ export default function CreateProject() {
 
         {/* Submit Button */}
         <div className="flex justify-end space-x-4">
-          <Button variant="outline" type="button">
-            Cancel
+          <Button
+            variant="outline"
+            type="button"
+            disabled={isLoading}
+            onClick={() => {
+              setProjectName("");
+              setDescription("");
+              setSelectedManager("");
+              setSelectedTechLead("");
+              setSelectedDevelopers([]);
+              setSelectedSkills([]);
+            }}
+          >
+            Reset
           </Button>
-          <Button type="submit">Create Project</Button>
+          <Button type="submit" disabled={isLoading} className="flex-1">
+            {isLoading ? "Creating Project..." : "Create Project"}
+          </Button>
         </div>
       </form>
     </div>

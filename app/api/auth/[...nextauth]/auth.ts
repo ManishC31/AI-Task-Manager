@@ -1,8 +1,8 @@
-import { ConnectDB } from "@/lib/db";
 import User, { IUser } from "@/models/user.model";
 import { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { ConnectDB } from "@/lib/db";
 
 // Extend JWT and Session
 declare module "next-auth/jwt" {
@@ -34,8 +34,6 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        console.log("credentials:", credentials);
-
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Missing email or password");
         }
@@ -45,7 +43,7 @@ export const authOptions: NextAuthOptions = {
         const user: IUser | null = await User.findOne({
           email: credentials.email.toLowerCase(),
         });
-
+        console.log("user:", user);
         if (!user) {
           throw new Error("No user found with this email");
         }
