@@ -6,7 +6,7 @@ interface Params {
   role: string;
 }
 
-export async function GET(req: NextRequest, context: { params: Params }) {
+export async function GET(req: NextRequest, context: { params: Promise<Params> }) {
   const { role } = await context.params;
 
   if (!role) {

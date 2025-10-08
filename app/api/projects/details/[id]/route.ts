@@ -6,7 +6,7 @@ interface Params {
   id: string;
 }
 
-export async function GET(req: NextRequest, context: { params: Params }) {
+export async function GET(req: NextRequest, context: { params: Promise<Params> }) {
   const { id } = await context.params;
   if (!id) {
     return NextResponse.json(

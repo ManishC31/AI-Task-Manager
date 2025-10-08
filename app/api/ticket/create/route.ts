@@ -1,6 +1,6 @@
 import Project from "@/models/project.model";
 import Ticket from "@/models/ticket.model";
-import User, { IUser } from "@/models/user.model";
+import User from "@/models/user.model";
 import { AIFunction } from "@/utils/ai";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
@@ -10,39 +10,23 @@ export async function POST(req: NextRequest) {
   const token = await getToken({ req });
 
   if (!description) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "User description is required",
-      },
-      { status: 400 }
-    );
+    return NextResponse.json({ success: false, error: "User description is required" }, { status: 400 });
   }
 
   try {
     const data = await AIFunction(description);
-    console.log("data:", data);
-
     if (!data) {
-      return (
-        NextResponse.json({
-          success: false,
-          error: "Failed to generate details from the user input",
-        }),
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Failed to generate details from the user input" }, { status: 400 });
     }
 
     const projectData = await Project.findById(projectId);
-    console.log("project data:", projectData);
+    if (!projectData) {
+      return NextResponse.json({ success: false, error: "Invalid project ID" }, { status: 400 });
+    }
 
     data.tags = [...data.tags, ...projectData.techstack];
 
-    console.log("data:", data);
-
-    let developerToAssign;
-
-    // Find users in the same organization, and sort by number of matching skills with data.tags (descending)
+    // Step 1: Find developers with matching skills in the same organization
     const suggestedDevelopers = await User.aggregate([
       { $match: { organization: token?.organizationId, role: "DEVELOPER" } },
       {
@@ -62,41 +46,48 @@ export async function POST(req: NextRequest) {
       { $sort: { matchingSkillsCount: -1 } },
     ]);
 
-    console.log("suggestedDevelopers:", suggestedDevelopers);
+    let developerToAssign = null;
 
-    if (suggestedDevelopers.length === 0) {
-      const fallbackDevelopers = await User.find({ organization: token?.organizationId, role: "DEVELOPER" }).limit(1);
-      developerToAssign = fallbackDevelopers[0];
+    if (suggestedDevelopers.length > 0 && suggestedDevelopers[0].matchingSkillsCount > 0) {
+      // Highest skill match developer
+      developerToAssign = suggestedDevelopers[0];
+    } else {
+      // Step 2: No skill match → assign developer with least number of active projects
+      const leastLoadedDeveloper = await User.aggregate([
+        { $match: { organization: token?.organizationId, role: "DEVELOPER" } },
+        {
+          $lookup: {
+            from: "tickets",
+            localField: "_id",
+            foreignField: "developer",
+            as: "assignedTickets",
+          },
+        },
+        {
+          $addFields: {
+            projectCount: { $size: "$assignedTickets" },
+          },
+        },
+        { $sort: { projectCount: 1 } }, // ascending → least busy first
+        { $limit: 1 },
+      ]);
+
+      developerToAssign = leastLoadedDeveloper[0] || null;
     }
 
-    console.log("developerToAssign:", developerToAssign);
-
-    // create a new ticket
     const ticket = await Ticket.create({
       title: data.title,
       description: data.description,
       project: projectId,
       creator: token?.id,
-      developer: developerToAssign?._id,
+      developer: developerToAssign?._id || null,
       priority: data.priority,
       tags: data.tags,
     });
 
-    return NextResponse.json(
-      {
-        success: true,
-        ticket: ticket,
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({ success: true, ticket }, { status: 200 });
   } catch (error) {
-    console.log("Err in crating new ticket:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to create new token",
-      },
-      { status: 500 }
-    );
+    console.error("Error creating new ticket:", error);
+    return NextResponse.json({ success: false, error: "Failed to create new ticket" }, { status: 500 });
   }
 }

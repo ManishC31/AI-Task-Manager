@@ -17,7 +17,7 @@ export interface ITicket extends Document {
   start_date: Date;
   finish_date?: Date;
   creator?: mongoose.Types.ObjectId;
-  developer?: mongoose.Types.ObjectId;
+  developer?: any;
   priority?: "LOW" | "MEDIUM" | "HIGH";
   images: string[];
   tags: string[];

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -285,7 +284,7 @@ export default function ProjectOverview() {
           }
 
           // Update the task's status and push to the new column
-          const updatedTask: ITicket = { ...taskToMove, status: nextStatus };
+          const updatedTask: any = { ...taskToMove, status: nextStatus };
           newColumns[toColIdx].tasks.push(updatedTask);
 
           setColumns(newColumns);
@@ -335,16 +334,10 @@ export default function ProjectOverview() {
         <CardContent className="pt-0">
           <div className="flex items-center justify-between ml-8">
             <div className="flex items-center space-x-2">
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={task.developer?.avatar} />
-                <AvatarFallback className="text-xs">
-                  {task.developer?.name
-                    .split(" ")
-                    .map((n: any) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
-              <Badge variant="secondary" className={`text-xs ${priorityColors[task?.priority]}`}>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-muted-foreground">{task.developer?.name || "Unassigned"}</span>
+              </div>
+              <Badge variant="secondary" className={`text-xs ${priorityColors[task?.priority as keyof typeof priorityColors]}`}>
                 {task.priority}
               </Badge>
             </div>
@@ -419,15 +412,6 @@ export default function ProjectOverview() {
                     <div>
                       <p className="text-sm font-medium">Project Manager</p>
                       <div className="flex items-center space-x-2 mt-1">
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={projectData.manager?.avatar} />
-                          <AvatarFallback className="text-xs">
-                            {projectData.manager?.name
-                              ?.split(" ")
-                              .map((n) => n[0])
-                              .join("") || "PM"}
-                          </AvatarFallback>
-                        </Avatar>
                         <span className="text-sm text-muted-foreground">{projectData.manager?.name || "Not assigned"}</span>
                       </div>
                     </div>
@@ -439,15 +423,6 @@ export default function ProjectOverview() {
                     <div>
                       <p className="text-sm font-medium">Tech Lead</p>
                       <div className="flex items-center space-x-2 mt-1">
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={projectData.techlead?.avatar} />
-                          <AvatarFallback className="text-xs">
-                            {projectData.techlead?.name
-                              ?.split(" ")
-                              .map((n) => n[0])
-                              .join("") || "TL"}
-                          </AvatarFallback>
-                        </Avatar>
                         <span className="text-sm text-muted-foreground">{projectData.techlead?.name || "Not assigned"}</span>
                       </div>
                     </div>

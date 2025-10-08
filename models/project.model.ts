@@ -6,8 +6,8 @@ export interface IProject {
   title: string;
   description?: string;
   organization?: mongoose.Types.ObjectId;
-  manager?: mongoose.Types.ObjectId;
-  techlead?: mongoose.Types.ObjectId;
+  manager?: any;
+  techlead?: any;
   start_date: Date;
   finish_date?: Date;
   status?: "INPROGRESS" | "COMPLETED" | "PLANNING" | "ONHOLD";
