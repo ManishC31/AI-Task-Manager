@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TaskMind AI
 
-## Getting Started
+[Live Demo](https://taskmind-ai.manishchavan.in)
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Overview
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**TaskMind AI** is an intelligent project management tool that leverages artificial intelligence to streamline your team's workflow. Designed for modern software teams, TaskMind AI automates the process of issue creation and assignment, making project management faster, smarter, and more efficient.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🤖 How It Works
 
-## Learn More
+When a user writes a description of an issue or task, TaskMind AI's advanced AI engine:
 
-To learn more about Next.js, take a look at the following resources:
+- **Generates a Clear Title:** Automatically summarizes the issue into a concise, relevant title.
+- **Refines the Description:** Enhances and structures the issue description for clarity and completeness.
+- **Assigns to the Right Developer:** Analyzes team members' skills, workload, and history to assign the issue to the most suitable developer.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This automation reduces manual effort, eliminates ambiguity, and ensures tasks are distributed optimally across your team.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## ✨ Key Features
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **AI-Powered Issue Creation:** Just describe your problem—TaskMind AI handles the rest.
+- **Smart Assignment:** Issues are automatically assigned to the best-fit developer.
+- **Collaborative Project Boards:** Visualize and manage your team's workflow with Kanban-style boards.
+- **Real-Time Notifications:** Stay updated on assignments, progress, and deadlines.
+- **Team Analytics:** Gain insights into team performance, workload distribution, and project progress.
+- **Secure & Scalable:** Built with modern security practices and scalable architecture.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🌐 Live Demo
+
+Try TaskMind AI now:  
+👉 [https://taskmind-ai.manishchavan.in](https://taskmind-ai.manishchavan.in)
+
+---
+
+## 🛠️ Getting Started
+
+1. **Visit the Live URL:**  
+   Go to [https://taskmind-ai.manishchavan.in](https://taskmind-ai.manishchavan.in)
+
+2. **Sign Up / Log In:**  
+   Create your account or log in to your workspace.
+
+3. **Create a Project:**  
+   Set up your project and invite your team members.
+
+4. **Add an Issue:**  
+   Simply write a description of the issue or task.
+
+   - The AI will generate a suitable title and detailed description.
+   - The issue will be automatically assigned to the most appropriate developer.
+
+5. **Track Progress:**  
+   Use the project board to monitor tasks, assignments, and project milestones.
+
+---
+
+## 📸 Screenshots
+
+> _Add screenshots here to showcase the AI-powered issue creation, assignment, and project boards!_
+
+---
+
+## 🧑‍💻 Technologies Used
+
+- **Frontend:** React.js, Tailwind CSS
+- **Backend:** Node.js, Express.js
+- **AI Integration:** OpenAI API (or similar LLM)
+- **Database:** MongoDB
+- **Authentication:** JWT, OAuth
+
+---
+
+## 💡 Why TaskMind AI?
+
+Traditional project management tools require manual entry and assignment, which can be time-consuming and error-prone. TaskMind AI automates these steps, allowing your team to focus on what matters most: building great software.
+
+---
+
+## 📬 Feedback & Contributions
+
+We welcome your feedback and contributions!  
+Open an issue or submit a pull request to help make TaskMind AI even better.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+**Made with ❤️ by Manish Chavan**
